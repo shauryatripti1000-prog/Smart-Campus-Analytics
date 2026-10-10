@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { Eye, EyeOff, Lock, Mail, ArrowRight, Activity, Users, ShieldCheck, User } from 'lucide-react';
 import axios from 'axios';
 
-const API_URL = 'http://127.0.0.1:8000';
+const API_URL = 'https://smart-campus-analytics-1.onrender.com';
 
 const LoginAnimation = ({ onLogin }) => {
-  const [isSignup, setIsSignup] = useState(false); // Login ya Signup mode
+  const [isSignup, setIsSignup] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,13 +20,11 @@ const LoginAnimation = ({ onLogin }) => {
     
     try {
       if (isSignup) {
-        // Signup API Call
         await axios.post(`${API_URL}/signup`, { name, email, password });
         alert("Account ban gaya! Ab login karo.");
-        setIsSignup(false); // Login form par switch karo
+        setIsSignup(false);
         setPassword('');
       } else {
-        // Login API Call
         const response = await axios.post(`${API_URL}/login`, { email, password });
         if (response.data.user) {
           onLogin(response.data.user);
@@ -34,8 +32,7 @@ const LoginAnimation = ({ onLogin }) => {
       }
     } catch (err) {
       console.error(err);
-      // Backend se jo error aayega wahi dikhega
-      setError(err.response?.data?.detail || 'Backend se connect nahi ho pa raha. Check karo uvicorn chal raha hai ya nahi.');
+      setError(err.response?.data?.detail || 'Backend se connect nahi ho pa raha. Thodi der baad try karo.');
     } finally {
       setIsLoading(false);
     }
@@ -43,12 +40,11 @@ const LoginAnimation = ({ onLogin }) => {
 
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center relative overflow-hidden font-sans">
-      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-indigo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-      <div className="absolute top-[20%] right-[-10%] w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-indigo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+      <div className="absolute top-[20%] right-[-10%] w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
 
       <div className="z-10 flex flex-col md:flex-row bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-3xl shadow-2xl overflow-hidden max-w-5xl w-full mx-4">
         
-        {/* LEFT SIDE */}
         <div className="md:w-1/2 p-10 flex flex-col justify-between bg-gradient-to-br from-indigo-950/80 to-slate-900 border-r border-slate-800">
           <div>
             <div className="flex items-center gap-3 mb-8">
@@ -73,7 +69,6 @@ const LoginAnimation = ({ onLogin }) => {
           </div>
         </div>
 
-        {/* RIGHT SIDE */}
         <div className="md:w-1/2 p-10 flex flex-col justify-center bg-slate-900/50">
           <h3 className="text-3xl font-bold text-white mb-2">{isSignup ? 'Create Account' : 'Welcome Back'}</h3>
           <p className="text-slate-400 mb-8">{isSignup ? 'Sign up to get started.' : 'Please enter your details to sign in.'}</p>

@@ -22,21 +22,20 @@ const AIChat = ({ onClose }) => {
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
       console.error("Error:", error);
-      setMessages((prev) => [...prev, { sender: 'ai', text: 'Sorry, backend se connect nahi ho pa raha! Check karo ki uvicorn chal raha hai ya nahi.' }]);
+      setMessages((prev) => [...prev, { sender: 'ai', text: 'Sorry, backend se connect nahi ho pa raha. Thodi der baad try karo.' }]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
     <div className="fixed bottom-24 right-6 w-96 h-[500px] bg-white rounded-2xl shadow-2xl flex flex-col border border-gray-200 z-50 overflow-hidden">
       
-      {/* Header */}
       <div className="bg-blue-600 text-white p-4 flex justify-between items-center">
         <h2 className="font-bold flex items-center gap-2">✨ AI Assistant</h2>
         <button onClick={onClose} className="text-white hover:text-gray-200 text-2xl font-bold leading-none">&times;</button>
       </div>
 
-      {/* Chat History */}
       <div className="flex-1 overflow-y-auto p-4 bg-gray-50 flex flex-col gap-3">
         {messages.length === 0 && (
           <p className="text-gray-400 text-center mt-10 text-sm">Kuch bhi pucho, jaise "Aaj ka date kya hai?"</p>
@@ -51,7 +50,6 @@ const AIChat = ({ onClose }) => {
         {loading && <p className="text-gray-500 text-xs italic">AI soch raha hai...</p>}
       </div>
 
-      {/* Input Box */}
       <div className="p-3 bg-white border-t border-gray-200 flex gap-2">
         <input
           type="text"

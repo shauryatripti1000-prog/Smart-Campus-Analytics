@@ -17,13 +17,11 @@ export default function StudentDashboard({ user, onLogout }) {
       setStudents(response.data);
     } catch (error) {
       console.error("Data fetch error:", error);
-      // Fallback: Agar backend band hai toh yeh dikhega
       setStudents([
         { id: 1, roll: '#550', name: 'Anya Dwivedi', score: 93.9, attendance: '100%', risk: 'Low' },
         { id: 2, roll: '#522', name: 'Myra Kapoor', score: 92.9, attendance: '100%', risk: 'Low' }
       ]);
     } finally {
-      // Yeh line sabse important hai! Isse loading hamesha band ho jayega.
       setLoading(false);
     }
   };
@@ -45,7 +43,6 @@ export default function StudentDashboard({ user, onLogout }) {
     link.click();
   };
 
-  // Loading state agar abhi bhi true hai (sirf 1-2 second ke liye dikhega)
   if (loading && students.length === 0) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white">
@@ -58,7 +55,6 @@ export default function StudentDashboard({ user, onLogout }) {
   return (
     <div className="min-h-screen bg-slate-50 p-6 relative font-sans">
       
-      {/* HEADER */}
       <div className="flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Smart Campus</h1>
@@ -72,7 +68,6 @@ export default function StudentDashboard({ user, onLogout }) {
         </div>
       </div>
 
-      {/* STATS CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
           <div className="p-3 bg-green-100 text-green-600 rounded-full"><TrendingUp size={24} /></div>
@@ -88,7 +83,6 @@ export default function StudentDashboard({ user, onLogout }) {
         </div>
       </div>
 
-      {/* ACTION BUTTONS */}
       <div className="flex flex-wrap gap-3 mb-6">
         <button onClick={fetchStudents} className="flex items-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg shadow-sm transition-all font-medium">
           <RefreshCw size={18} className={loading ? "animate-spin" : ""} /> Refresh Data
@@ -101,7 +95,6 @@ export default function StudentDashboard({ user, onLogout }) {
         </button>
       </div>
 
-      {/* TABLE */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-4 border-b border-gray-100 bg-gray-50/50">
           <h2 className="font-semibold text-gray-800">Students ({students.length} results)</h2>
@@ -140,7 +133,6 @@ export default function StudentDashboard({ user, onLogout }) {
         </div>
       </div>
 
-      {/* AI CHAT */}
       <button onClick={() => setChatOpen(!chatOpen)} className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-2xl transition-all duration-300 z-50 flex items-center justify-center hover:scale-105">
         <MessageCircle size={28} />
       </button>
