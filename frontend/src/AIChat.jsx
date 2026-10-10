@@ -15,7 +15,7 @@ const AIChat = ({ onClose }) => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://127.0.0.1:8000/chat', {
+      const response = await axios.post('https://smart-campus-analytics-1.onrender.com/chat', {
         message: input,
       });
       const aiMessage = { sender: 'ai', text: response.data.reply };

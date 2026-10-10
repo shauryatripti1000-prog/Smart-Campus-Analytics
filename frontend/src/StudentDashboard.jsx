@@ -3,7 +3,7 @@ import axios from 'axios';
 import AIChat from './AIChat';
 import { Flame, Target, TrendingUp, MessageCircle, LogOut, Download, Plus, RefreshCw } from 'lucide-react';
 
-const API = 'http://127.0.0.1:8000';
+const API = 'https://smart-campus-analytics-1.onrender.com';
 
 export default function StudentDashboard({ user, onLogout }) {
   const [students, setStudents] = useState([]);
