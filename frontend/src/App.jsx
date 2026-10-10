@@ -1,43 +1,35 @@
-import { useState, useEffect } from 'react'
-import axios from 'axios'
-import Login from './Login'
-import AdminDashboard from './AdminDashboard'
-import StudentDashboard from './StudentDashboard'
+import React, { useState } from 'react';
+import LoginAnimation from './LoginAnimation';
+import StudentDashboard from './StudentDashboard';
+// Agar aapke paas AdminDashboard ya aur bhi components hain, toh unhe yahan import karein
+// import AdminDashboard from './AdminDashboard'; 
 
 function App() {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
+  // User state: Agar null hai toh login page dikhega, agar user hai toh dashboard
+  const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token')
-    const userData = localStorage.getItem('user')
-    if (token && userData) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-      setUser(JSON.parse(userData))
-    }
-    setLoading(false)
-  }, [])
+  // Login hone par yeh function chalega
+  const handleLogin = (userData) => {
+    setUser(userData);
+    console.log("User logged in:", userData);
+  };
 
-  const handleLogin = (userData) => setUser(userData)
-
+  // Logout hone par yeh function chalega
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    delete axios.defaults.headers.common['Authorization']
-    setUser(null)
-  }
+    setUser(null);
+  };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-brand-600 border-t-transparent"></div>
-      </div>
-    )
-  }
-
-  if (!user) return <Login onLogin={handleLogin} />
-  if (user.role === 'admin') return <AdminDashboard user={user} onLogout={handleLogout} />
-  return <StudentDashboard user={user} onLogout={handleLogout} />
+  return (
+    <div className="font-sans">
+      {user ? (
+        // Agar user logged in hai, toh Dashboard dikhao
+        <StudentDashboard user={user} onLogout={handleLogout} />
+      ) : (
+        // Agar user logged in nahi hai, toh Login page dikhao
+        <LoginAnimation onLogin={handleLogin} />
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;

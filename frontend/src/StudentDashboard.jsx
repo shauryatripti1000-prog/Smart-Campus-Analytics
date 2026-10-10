@@ -1,230 +1,151 @@
-import { useState, useEffect } from 'react'
-import axios from 'axios'
-import { Flame, Target, TrendingUp, MessageCircle, LogOut, GraduationCap, CheckCircle2, Calendar } from 'lucide-react'
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import AIChat from './AIChat';
+import { Flame, Target, TrendingUp, MessageCircle, LogOut, Download, Plus, RefreshCw } from 'lucide-react';
 
-const API = 'http://127.0.0.1:8000'
+const API = 'http://127.0.0.1:8000';
 
 export default function StudentDashboard({ user, onLogout }) {
-  const [student, setStudent] = useState(null)
-  const [chatOpen, setChatOpen] = useState(false)
-  const [messages, setMessages] = useState([])
-  const [input, setInput] = useState('')
-  const [streak] = useState(Math.floor(Math.random() * 15) + 5)
+  const [students, setStudents] = useState([]);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const fetchStudents = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${API}/students`);
+      setStudents(response.data);
+    } catch (error) {
+      console.error("Data fetch error:", error);
+      // Fallback: Agar backend band hai toh yeh dikhega
+      setStudents([
+        { id: 1, roll: '#550', name: 'Anya Dwivedi', score: 93.9, attendance: '100%', risk: 'Low' },
+        { id: 2, roll: '#522', name: 'Myra Kapoor', score: 92.9, attendance: '100%', risk: 'Low' }
+      ]);
+    } finally {
+      // Yeh line sabse important hai! Isse loading hamesha band ho jayega.
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    axios.get(`${API}/students/me`)
-      .then(r => setStudent(r.data))
-      .catch(err => console.error(err))
-  }, [])
+    fetchStudents();
+  }, []);
 
-  const sendMessage = () => {
-    if (!input.trim()) return
-    const userMsg = input
-    setMessages([...messages, { role: 'user', text: userMsg }])
-    setInput('')
-    setTimeout(() => {
-      const responses = [
-        "I understand. Let's break this down into small steps. What subject is troubling you most?",
-        "Great question! Based on your profile, I'd recommend focusing on 2 subjects this week. Want a 7-day plan?",
-        "Remember, consistency beats intensity. Try 25-minute focused sessions with 5-minute breaks. You've got this! 💪",
-        "Your placement readiness is improving. Let's practice 2 coding problems today. Which language do you prefer?"
-      ]
-      setMessages(prev => [...prev, { 
-        role: 'ai', 
-        text: responses[Math.floor(Math.random() * responses.length)]
-      }])
-    }, 800)
-  }
+  const handleExport = () => {
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + ["Roll,Name,Score,Attendance,Risk"].join(",") + "\n"
+      + students.map(s => `${s.roll},${s.name},${s.score},${s.attendance},${s.risk}`).join("\n");
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "students_data.csv");
+    document.body.appendChild(link);
+    link.click();
+  };
 
-  if (!student) {
+  // Loading state agar abhi bhi true hai (sirf 1-2 second ke liye dikhega)
+  if (loading && students.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-brand-600 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-slate-500">Loading your dashboard...</p>
-        </div>
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white">
+        <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-slate-400">Loading your dashboard...</p>
       </div>
-    )
+    );
   }
-
-  const riskColor = student.risk_level === 'Low' ? 'text-green-600' : student.risk_level === 'Medium' ? 'text-yellow-600' : 'text-red-600'
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
-      {/* Top Nav */}
-      <nav className="bg-white border-b border-slate-200 sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-brand-600 rounded-lg flex items-center justify-center">
-              <GraduationCap className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="font-bold text-slate-900">Smart Campus</h1>
-              <p className="text-xs text-slate-500">Student Portal</p>
-            </div>
-          </div>
-          <button
-            onClick={onLogout}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-          >
-            <LogOut className="w-4 h-4" />
-            Logout
+    <div className="min-h-screen bg-slate-50 p-6 relative font-sans">
+      
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Smart Campus</h1>
+          <p className="text-sm text-gray-500">Admin Dashboard</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <span className="text-sm font-medium text-gray-600">{user?.email || 'admin@campus.edu'}</span>
+          <button onClick={onLogout} className="flex items-center gap-2 text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg transition-all font-medium">
+            <LogOut size={18} /> Logout
           </button>
         </div>
-      </nav>
-
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-slate-900">Hi, {student.name.split(' ')[0]}! 👋</h2>
-          <p className="text-slate-500">Here's your personalized success overview</p>
-        </div>
-
-        {/* Hero Stats */}
-        <div className="grid md:grid-cols-3 gap-5 mb-8">
-          <div className="bg-gradient-to-br from-brand-600 to-brand-800 p-6 rounded-2xl text-white">
-            <p className="text-sm text-white/70 mb-2">Your Success Score</p>
-            <p className="text-5xl font-bold mb-2">{student.success_score}</p>
-            <div className="flex items-center gap-2 text-sm">
-              <TrendingUp className="w-4 h-4" />
-              <span>Keep it up!</span>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl border border-slate-200">
-            <div className="flex items-center gap-2 mb-3">
-              <Flame className="w-5 h-5 text-orange-500" />
-              <p className="text-sm font-medium text-slate-600">Success Streak</p>
-            </div>
-            <p className="text-4xl font-bold text-slate-900 mb-1">{streak} days</p>
-            <p className="text-xs text-slate-500">Login daily to grow 🔥</p>
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl border border-slate-200">
-            <div className="flex items-center gap-2 mb-3">
-              <Target className="w-5 h-5 text-brand-600" />
-              <p className="text-sm font-medium text-slate-600">Risk Level</p>
-            </div>
-            <p className={`text-4xl font-bold mb-1 ${riskColor}`}>{student.risk_level}</p>
-            <p className="text-xs text-slate-500">{student.risk_factors}</p>
-          </div>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid md:grid-cols-4 gap-4 mb-8">
-          <MiniStat label="Attendance" value={`${student.attendance_pct}%`} />
-          <MiniStat label="CGPA" value={student.cgpa} />
-          <MiniStat label="Placement Ready" value={student.placement_readiness} />
-          <MiniStat label="LMS Logins" value={student.login_count_last_30d} />
-        </div>
-
-        {/* Today's Tasks */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Calendar className="w-5 h-5 text-brand-600" />
-            <h3 className="font-semibold text-slate-900">Today's Recommended Tasks</h3>
-          </div>
-          <div className="space-y-3">
-            <TaskItem text="Complete Maths assignment (due today)" done={false} />
-            <TaskItem text="Watch 'Calculus Basics' video (20 min)" done={false} />
-            <TaskItem text="Practice 5 coding problems" done={true} />
-            <TaskItem text="Log daily attendance" done={true} />
-          </div>
-        </div>
-
-        {/* AI Copilot Button */}
-        <button
-          onClick={() => setChatOpen(true)}
-          className="fixed bottom-6 right-6 bg-brand-600 hover:bg-brand-700 text-white rounded-full p-4 shadow-2xl transition flex items-center gap-3 pr-6 z-50"
-        >
-          <MessageCircle className="w-6 h-6" />
-          <span className="font-semibold">AI Copilot</span>
-        </button>
-
-        {/* Chat Window */}
-        {chatOpen && (
-          <div className="fixed bottom-24 right-6 w-96 h-[500px] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col z-50">
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-brand-600 rounded-full flex items-center justify-center">
-                  <MessageCircle className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <p className="font-semibold text-slate-900 text-sm">Success Copilot</p>
-                  <p className="text-xs text-green-500 flex items-center gap-1">
-                    <span className="w-2 h-2 bg-green-500 rounded-full"></span> Online
-                  </p>
-                </div>
-              </div>
-              <button onClick={() => setChatOpen(false)} className="text-slate-400 hover:text-slate-600">✕</button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {messages.length === 0 && (
-                <div className="text-center py-8">
-                  <p className="text-sm text-slate-500 mb-3">Hi {student.name.split(' ')[0]}! 👋</p>
-                  <p className="text-xs text-slate-400 mb-4">I'm here to help with studies, career, or just to chat</p>
-                  <div className="space-y-2">
-                    {["Help me study for exams", "I'm feeling stressed", "Give me career advice"].map(q => (
-                      <button 
-                        key={q}
-                        onClick={() => setInput(q)}
-                        className="block w-full text-left text-xs px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded-lg transition"
-                      >
-                        {q}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {messages.map((m, i) => (
-                <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm ${
-                    m.role === 'user' ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-800'
-                  }`}>
-                    {m.text}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="p-3 border-t border-slate-100">
-              <div className="flex gap-2">
-                <input
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && sendMessage()}
-                  placeholder="Ask anything..."
-                  className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
-                />
-                <button
-                  onClick={sendMessage}
-                  className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium"
-                >
-                  Send
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
-    </div>
-  )
-}
 
-function MiniStat({ label, value }) {
-  return (
-    <div className="bg-white p-4 rounded-xl border border-slate-200">
-      <p className="text-xs text-slate-500 mb-1">{label}</p>
-      <p className="text-xl font-bold text-slate-900">{value}</p>
-    </div>
-  )
-}
+      {/* STATS CARDS */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+          <div className="p-3 bg-green-100 text-green-600 rounded-full"><TrendingUp size={24} /></div>
+          <div><p className="text-gray-500 text-sm font-medium">Low Risk</p><h3 className="text-2xl font-bold text-gray-800">31</h3></div>
+        </div>
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+          <div className="p-3 bg-orange-100 text-orange-600 rounded-full"><Target size={24} /></div>
+          <div><p className="text-gray-500 text-sm font-medium">Medium Risk</p><h3 className="text-2xl font-bold text-gray-800">18</h3></div>
+        </div>
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+          <div className="p-3 bg-red-100 text-red-600 rounded-full"><Flame size={24} /></div>
+          <div><p className="text-gray-500 text-sm font-medium">High Risk</p><h3 className="text-2xl font-bold text-gray-800">1</h3></div>
+        </div>
+      </div>
 
-function TaskItem({ text, done }) {
-  return (
-    <div className={`flex items-center gap-3 p-3 rounded-xl ${done ? 'bg-green-50' : 'bg-slate-50'}`}>
-      <CheckCircle2 className={`w-5 h-5 ${done ? 'text-green-600' : 'text-slate-300'}`} />
-      <span className={`text-sm ${done ? 'text-slate-500 line-through' : 'text-slate-700'}`}>{text}</span>
+      {/* ACTION BUTTONS */}
+      <div className="flex flex-wrap gap-3 mb-6">
+        <button onClick={fetchStudents} className="flex items-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg shadow-sm transition-all font-medium">
+          <RefreshCw size={18} className={loading ? "animate-spin" : ""} /> Refresh Data
+        </button>
+        <button onClick={handleExport} className="flex items-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg shadow-sm transition-all font-medium">
+          <Download size={18} /> Export CSV
+        </button>
+        <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-md transition-all font-medium">
+          <Plus size={18} /> Add New Student
+        </button>
+      </div>
+
+      {/* TABLE */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+          <h2 className="font-semibold text-gray-800">Students ({students.length} results)</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50 text-gray-500 text-sm">
+                <th className="p-4 font-medium">ROLL</th>
+                <th className="p-4 font-medium">NAME</th>
+                <th className="p-4 font-medium">SCORE</th>
+                <th className="p-4 font-medium">ATTENDANCE</th>
+                <th className="p-4 font-medium">RISK</th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.map((student) => (
+                <tr key={student.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                  <td className="p-4 text-gray-600 font-medium">{student.roll}</td>
+                  <td className="p-4 text-gray-800">{student.name}</td>
+                  <td className="p-4 text-gray-800 font-semibold">{student.score}</td>
+                  <td className="p-4 text-gray-600">{student.attendance}</td>
+                  <td className="p-4">
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      student.risk === 'High' ? 'bg-red-100 text-red-700' : 
+                      student.risk === 'Medium' ? 'bg-orange-100 text-orange-700' : 
+                      'bg-green-100 text-green-700'
+                    }`}>
+                      {student.risk}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* AI CHAT */}
+      <button onClick={() => setChatOpen(!chatOpen)} className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-2xl transition-all duration-300 z-50 flex items-center justify-center hover:scale-105">
+        <MessageCircle size={28} />
+      </button>
+      {chatOpen && <AIChat onClose={() => setChatOpen(false)} />}
+
     </div>
-  )
+  );
 }
